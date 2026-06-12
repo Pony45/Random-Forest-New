@@ -88,7 +88,7 @@ size_mb = os.path.getsize('models/thesis_mv_random_forest.pkl') / (1024 * 1024)
 print(f"\n📦 Model file size: {size_mb:.2f} MB")
 
 # Compress whole folder
-!zip -r models.zip models/
+# !zip -r models.zip models/
 files.download('models.zip')
 
 print(f"\n✅ models.zip downloaded! File size should be under 25MB")
