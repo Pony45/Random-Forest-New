@@ -4,10 +4,8 @@ import numpy as np
 import joblib
 import os
 import matplotlib.pyplot as plt
-import seaborn as sns
 from datetime import datetime
 import json
-import seaborn as sns 
 
 # Page config
 st.set_page_config(
@@ -138,6 +136,22 @@ def load_metrics():
 
 metrics = load_metrics()
 
+# ==========================================
+# SIDEBAR
+# ==========================================
+with st.sidebar:
+    st.markdown("## 📋 Building Parameters")
+    st.markdown("---")
+    
+    # Display Settings
+    st.markdown("### ⚙️ Display Settings")
+    unit_option = st.selectbox(
+        "Energy Unit Display",
+        ["Per Hour (kWh)", "Per Day (kWh)", "Per Month (kWh)", "Per Year (kWh)"]
+    )
+    
+    st.markdown("---")
+    
     # Model Performance (UPDATED WITH RMSE & MAPE)
     st.markdown("### 📊 Model Performance")
     
@@ -145,7 +159,7 @@ metrics = load_metrics()
         with st.expander("Performance Metrics", expanded=True):
             # Row 1: R² and MAE
             col_r2, col_mae = st.columns(2)
-            r2_val = metrics.get('r2_score', 0.87)  # <----- FIX: Define r2_val here
+            r2_val = metrics.get('r2_score', 0.87)
             col_r2.metric("📈 R² Score", f"{r2_val:.4f}")
             col_mae.metric("📉 MAE", f"{metrics.get('mae', 0.12):.2f} kWh")
             
@@ -154,7 +168,7 @@ metrics = load_metrics()
             
             rmse_val = metrics.get('rmse')
             if rmse_val is not None and rmse_val != "N/A":
-                col_rmse.metric("🎯 RMSE", f"{rmse_val:.2f} kWh")
+                col_rmse.metric("🎯 RMSE", f"{rmse_val:.4f} kWh")
             else:
                 col_rmse.metric("🎯 RMSE", "N/A", help="Run training script with RMSE calculation")
             
@@ -167,7 +181,7 @@ metrics = load_metrics()
             # Progress bar for R²
             st.progress(min(r2_val, 1.0), text=f"📊 Accuracy: {r2_val*100:.1f}%")
             
-            # MAPE Interpretation Guide (FIX: use mape_val instead of undefined variable)
+            # MAPE Interpretation Guide
             if mape_val is not None and mape_val != "N/A":
                 if mape_val < 10:
                     st.success(f"✅ MAPE {mape_val:.1f}% → Excellent performance!")
@@ -191,33 +205,6 @@ metrics = load_metrics()
             
             st.progress(0.94, text="📊 Accuracy: 94.1%")
             st.success("✅ MAPE 4.76% → Excellent performance!")
-            st.caption("💡 **Performance Guide:** MAPE <10% = Excellent, 10-20% = Good, >20% = Needs Improvement")
-            
-            # Progress bar for R²
-            st.progress(min(r2_val, 1.0), text=f"📊 Accuracy: {r2_val*100:.1f}%")
-            
-            # MAPE Interpretation Guide
-            if mape_val is not None:
-                if mape_val < 10:
-                    st.success(f"✅ MAPE {mape_val:.1f}% → Excellent performance!")
-                elif mape_val < 20:
-                    st.info(f"ℹ️ MAPE {mape_val:.1f}% → Good performance")
-                else:
-                    st.warning(f"⚠️ MAPE {mape_val:.1f}% → Needs improvement")
-            
-            st.caption("💡 **Performance Guide:** MAPE <10% = Excellent, 10-20% = Good, >20% = Needs Improvement")
-    else:
-        with st.expander("Performance Metrics", expanded=True):
-            col_r2, col_mae = st.columns(2)
-            col_r2.metric("📈 R² Score", "0.8723")
-            col_mae.metric("📉 MAE", "0.12 kWh")
-            
-            col_rmse, col_mape = st.columns(2)
-            col_rmse.metric("🎯 RMSE", "0.18 kWh")
-            col_mape.metric("📊 MAPE", "8.5%")
-            
-            st.progress(0.87, text="📊 Accuracy: 87.2%")
-            st.success("✅ MAPE 8.5% → Excellent performance!")
             st.caption("💡 **Performance Guide:** MAPE <10% = Excellent, 10-20% = Good, >20% = Needs Improvement")
     
     st.markdown("---")
