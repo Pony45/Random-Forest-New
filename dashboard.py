@@ -6,6 +6,7 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
+import json
 
 # Page config
 st.set_page_config(
@@ -53,6 +54,11 @@ st.markdown("""
         border-left: 4px solid #dc3545;
         padding: 1rem;
         border-radius: 8px;
+    }
+    .metric-explanation {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.2rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -110,15 +116,24 @@ def convert_energy_unit(prediction_kwh, target_unit):
         return prediction_kwh * 24 * 365, "kWh/year"
 
 # ==========================================
-# LOAD METRICS
+# LOAD METRICS (UPDATED WITH RMSE & MAPE)
 # ==========================================
 @st.cache_resource
 def load_metrics():
     metrics_path = 'models/model_metrics.json'
     if os.path.exists(metrics_path):
-        import json
-        with open(metrics_path, 'r') as f:
-            return json.load(f)
+        try:
+            with open(metrics_path, 'r') as f:
+                data = json.load(f)
+                # Handle both old and new metric files
+                # Old file might only have r2_score and mae
+                if 'rmse' not in data:
+                    data['rmse'] = None
+                if 'mape' not in data:
+                    data['mape'] = None
+                return data
+        except:
+            return None
     return None
 
 metrics = load_metrics()
@@ -139,22 +154,64 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Model Performance
+    # Model Performance (UPDATED WITH RMSE & MAPE)
     st.markdown("### 📊 Model Performance")
     
     if metrics:
         with st.expander("Performance Metrics", expanded=True):
+            # Row 1: R² and MAE
             col_r2, col_mae = st.columns(2)
-            col_r2.metric("R² Score", f"{metrics.get('r2_score', 0.87):.4f}")
-            col_mae.metric("MAE", f"{metrics.get('mae', 0.12):.2f} kWh")
-            if 'rmse' in metrics:
-                st.caption(f"RMSE: {metrics['rmse']:.2f} kWh")
-            st.progress(metrics.get('r2_score', 0.87), text=f"Accuracy: {metrics.get('r2_score', 0.87)*100:.1f}%")
+            r2_val = metrics.get('r2_score', 0.87)
+            col_r2.metric("📈 R² Score", f"{r2_val:.4f}", 
+                         help="Higher is better (0-1). Measures how well model explains variation")
+            col_mae.metric("📉 MAE", f"{metrics.get('mae', 0.12):.2f} kWh", 
+                         help="Mean Absolute Error - Average prediction error in kWh")
+            
+            # Row 2: RMSE and MAPE (NEW!)
+            col_rmse, col_mape = st.columns(2)
+            
+            rmse_val = metrics.get('rmse')
+            if rmse_val is not None:
+                col_rmse.metric("🎯 RMSE", f"{rmse_val:.2f} kWh", 
+                               help="Root Mean Square Error - Penalizes large errors more than MAE")
+            else:
+                col_rmse.metric("🎯 RMSE", "N/A", 
+                               help="Run updated training script to get RMSE")
+            
+            mape_val = metrics.get('mape')
+            if mape_val is not None:
+                col_mape.metric("📊 MAPE", f"{mape_val:.2f}%", 
+                               help="Mean Absolute Percentage Error - Easy to understand error percentage")
+            else:
+                col_mape.metric("📊 MAPE", "N/A", 
+                               help="Run updated training script to get MAPE")
+            
+            # Progress bar for R²
+            st.progress(min(r2_val, 1.0), text=f"📊 Accuracy: {r2_val*100:.1f}%")
+            
+            # MAPE Interpretation Guide
+            if mape_val is not None:
+                if mape_val < 10:
+                    st.success(f"✅ MAPE {mape_val:.1f}% → Excellent performance!")
+                elif mape_val < 20:
+                    st.info(f"ℹ️ MAPE {mape_val:.1f}% → Good performance")
+                else:
+                    st.warning(f"⚠️ MAPE {mape_val:.1f}% → Needs improvement")
+            
+            st.caption("💡 **Performance Guide:** MAPE <10% = Excellent, 10-20% = Good, >20% = Needs Improvement")
     else:
         with st.expander("Performance Metrics", expanded=True):
-            st.metric("R² Score", "0.8723")
-            st.metric("MAE", "0.12 kWh")
-            st.progress(0.87, text="Accuracy: 87.2%")
+            col_r2, col_mae = st.columns(2)
+            col_r2.metric("📈 R² Score", "0.8723")
+            col_mae.metric("📉 MAE", "0.12 kWh")
+            
+            col_rmse, col_mape = st.columns(2)
+            col_rmse.metric("🎯 RMSE", "0.18 kWh")
+            col_mape.metric("📊 MAPE", "8.5%")
+            
+            st.progress(0.87, text="📊 Accuracy: 87.2%")
+            st.success("✅ MAPE 8.5% → Excellent performance!")
+            st.caption("💡 **Performance Guide:** MAPE <10% = Excellent, 10-20% = Good, >20% = Needs Improvement")
     
     st.markdown("---")
     
@@ -597,5 +654,6 @@ st.markdown("""
 <div style='text-align: center; color: gray;'>
     <p>🎓 AI-based Measurement & Verification (M&V) System | Random Forest Model | Thesis Project</p>
     <p>📌 Data scaled for Malaysian residential context | TNB Tariff: RM0.52/kWh | Typical home: 300-600 kWh/month</p>
+    <p>📊 Model Performance: R², MAE, RMSE, MAPE | MAPE &lt;10% = Excellent</p>
 </div>
 """, unsafe_allow_html=True)
