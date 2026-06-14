@@ -167,24 +167,20 @@ with st.sidebar:
             col_mae.metric("📉 MAE", f"{metrics.get('mae', 0.12):.2f} kWh", 
                          help="Mean Absolute Error - Average prediction error in kWh")
             
-            # Row 2: RMSE and MAPE (NEW!)
-            col_rmse, col_mape = st.columns(2)
-            
-            rmse_val = metrics.get('rmse')
-            if rmse_val is not None:
-                col_rmse.metric("🎯 RMSE", f"{rmse_val:.2f} kWh", 
-                               help="Root Mean Square Error - Penalizes large errors more than MAE")
-            else:
-                col_rmse.metric("🎯 RMSE", "N/A", 
-                               help="Run updated training script to get RMSE")
-            
-            mape_val = metrics.get('mape')
-            if mape_val is not None:
-                col_mape.metric("📊 MAPE", f"{mape_val:.2f}%", 
-                               help="Mean Absolute Percentage Error - Easy to understand error percentage")
-            else:
-                col_mape.metric("📊 MAPE", "N/A", 
-                               help="Run updated training script to get MAPE")
+             # Row 2: RMSE and MAPE (BARIS INI YANG TUNJUK RMSE & MAPE)
+        col_rmse, col_mape = st.columns(2)
+        
+        rmse_val = metrics.get('rmse')
+        if rmse_val is not None:
+            col_rmse.metric("🎯 RMSE", f"{rmse_val:.2f} kWh")
+        else:
+            col_rmse.metric("🎯 RMSE", "N/A")
+        
+        mape_val = metrics.get('mape')
+        if mape_val is not None:
+            col_mape.metric("📊 MAPE", f"{mape_val:.2f}%")
+        else:
+            col_mape.metric("📊 MAPE", "N/A")
             
             # Progress bar for R²
             st.progress(min(r2_val, 1.0), text=f"📊 Accuracy: {r2_val*100:.1f}%")
