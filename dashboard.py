@@ -126,7 +126,6 @@ def load_metrics():
             with open(metrics_path, 'r') as f:
                 data = json.load(f)
                 # Handle both old and new metric files
-                # Old file might only have r2_score and mae
                 if 'rmse' not in data:
                     data['rmse'] = None
                 if 'mape' not in data:
@@ -155,32 +154,30 @@ with st.sidebar:
     st.markdown("---")
     
     # Model Performance (UPDATED WITH RMSE & MAPE)
+    # Model Performance (UPDATED WITH RMSE & MAPE)
     st.markdown("### 📊 Model Performance")
     
     if metrics:
         with st.expander("Performance Metrics", expanded=True):
             # Row 1: R² and MAE
             col_r2, col_mae = st.columns(2)
-            r2_val = metrics.get('r2_score', 0.87)
-            col_r2.metric("📈 R² Score", f"{r2_val:.4f}", 
-                         help="Higher is better (0-1). Measures how well model explains variation")
-            col_mae.metric("📉 MAE", f"{metrics.get('mae', 0.12):.2f} kWh", 
-                         help="Mean Absolute Error - Average prediction error in kWh")
+            col_r2.metric("📈 R² Score", f"{metrics.get('r2_score', 0.87):.4f}")
+            col_mae.metric("📉 MAE", f"{metrics.get('mae', 0.12):.2f} kWh")
             
-             # Row 2: RMSE and MAPE (BARIS INI YANG TUNJUK RMSE & MAPE)
-        col_rmse, col_mape = st.columns(2)
-        
-        rmse_val = metrics.get('rmse')
-        if rmse_val is not None:
-            col_rmse.metric("🎯 RMSE", f"{rmse_val:.2f} kWh")
-        else:
-            col_rmse.metric("🎯 RMSE", "N/A")
-        
-        mape_val = metrics.get('mape')
-        if mape_val is not None:
-            col_mape.metric("📊 MAPE", f"{mape_val:.2f}%")
-        else:
-            col_mape.metric("📊 MAPE", "N/A")
+            # Row 2: RMSE and MAPE  <----- BARIS INI
+            col_rmse, col_mape = st.columns(2)
+            
+            rmse_val = metrics.get('rmse')
+            if rmse_val is not None:
+                col_rmse.metric("🎯 RMSE", f"{rmse_val:.2f} kWh")
+            else:
+                col_rmse.metric("🎯 RMSE", "N/A")
+            
+            mape_val = metrics.get('mape')
+            if mape_val is not None:
+                col_mape.metric("📊 MAPE", f"{mape_val:.2f}%")
+            else:
+                col_mape.metric("📊 MAPE", "N/A")
             
             # Progress bar for R²
             st.progress(min(r2_val, 1.0), text=f"📊 Accuracy: {r2_val*100:.1f}%")
