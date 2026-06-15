@@ -96,7 +96,7 @@ if model is None:
 # ==========================================
 # SCALING FACTOR
 # ==========================================
-SCALING_FACTOR = 15
+SCALING_FACTOR = 2.2
 
 def scale_prediction(prediction):
     return prediction / SCALING_FACTOR
